@@ -21,36 +21,37 @@ mail = Mail(app)
 msg = Message('MSCWB',
     sender = 'ritts.1997@gmail.com',
     recipients = ['ritwikaghosh48@gmail.com', 'satanik.guha@gmail.com'])
-msg.body = 'Account suspension lifted! Check the site now'
-c = 'Account Suspended'
+msg.body = 'Page contents have changed. Check the site now!'
 url = 'https://www.mscwb.org/home/emp_notice'
-#url = 'https://www.google.com'
 print(url, file=sys.stdout)
 
 scheduler = BackgroundScheduler()
+
+title = BeautifulSoup(requests.get(url).content, 'html5lib').get_text()
 
 def endcycle():
     print("endcycle() called", file=sys.stdout)
     with app.app_context():
         mail.send(msg)
     print("Mail sent", file=sys.stdout)
-    scheduler.shutdown()
+    global title
+    title = BeautifulSoup(requests.get(url).content, 'html5lib').get_text()
 
 def notifier():
     print("Notifier() called", file=sys.stdout)
     try:
         req = requests.get(url)
         soup = BeautifulSoup(req.content, 'html5lib')
-        wbtitle = soup.title.get_text()
-        if wbtitle != 'Account Suspended':
-            print("Account not suspended", file=sys.stdout)
+        wbtitle = soup.get_text()
+        if wbtitle != title:
+            print("Page contents changed", file=sys.stdout)
             endcycle()
         else:
-            print("Account still suspended", file=sys.stdout)
+            print("Page contents same", file=sys.stdout)
     except Exception as e:
         print(e, file=sys.stderr)
 
-scheduler.add_job(func=notifier, trigger="interval", minutes=1)
+scheduler.add_job(func=notifier, trigger="interval", minutes=2)
 scheduler.start()
 
 @app.route('/')
