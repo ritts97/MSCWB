@@ -51,7 +51,7 @@ def notifier():
     except Exception as e:
         print(e, file=sys.stderr)
 
-scheduler.add_job(func=notifier, trigger="interval", minutes=2)
+scheduler.add_job(func=notifier, trigger="interval", minutes=5)
 scheduler.start()
 
 @app.route('/')
